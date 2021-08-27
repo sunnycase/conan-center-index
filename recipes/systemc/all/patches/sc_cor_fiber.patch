@@ -1,0 +1,11 @@
+--- a/sc_cor_fiber.cpp	2018-10-13 16:19:07.000000000 +0800
++++ b/sc_cor_fiber.cpp	2020-12-04 15:50:28.153232700 +0800
+@@ -70,7 +70,7 @@
+ {
+     if( m_fiber != 0 ) {
+       PVOID cur_fiber = GetCurrentFiber();
+-      if( m_fiber != cur_fiber && this != m_pkg->get_main() )
++      if( m_fiber != cur_fiber && this != &main_cor )
+          DeleteFiber( m_fiber );
+     }
+ }

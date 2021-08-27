@@ -4,7 +4,7 @@ sources:
     sha256: 5781b9a351e5afedabc37d145e5f7edec08f3fd5de00ffeb8fa1f3086b1f7b3f
 patches:
   "2.3.3":
-    - patch_file: "patches/sc_string_view.patch"
-      base_path: "source_subfolder"
     - patch_file: "patches/CMakeLists.patch"
       base_path: "source_subfolder"
+    - patch_file: "patches/sc_cor_fiber.patch"
+      base_path: "source_subfolder/src/sysc/kernel"

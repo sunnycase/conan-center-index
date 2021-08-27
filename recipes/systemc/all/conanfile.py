@@ -54,18 +54,10 @@ class SystemcConan(ConanFile):
         if self.options.shared:
             del self.options.fPIC
 
-        if self.settings.os == "Macos":
-            raise ConanInvalidConfiguration("Macos build not supported")
-
         if self.settings.os == "Windows" and self.options.shared:
             raise ConanInvalidConfiguration("The compilation of SystemC as a "
                                             "DLL on Windows is currently not "
                                             "supported")
-
-        if tools.valid_min_cppstd(self, "17"):
-            raise ConanInvalidConfiguration(
-                "C++ Standard %s not supported by SystemC" %
-                self.settings.compiler.cppstd)
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
