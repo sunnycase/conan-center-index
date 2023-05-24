@@ -1,0 +1,13 @@
+sources:
+  "1.14.1":
+    url: "https://github.com/microsoft/onnxruntime/archive/refs/tags/v1.14.1.tar.gz"
+    sha256: "f998352b131bb89fa7dd1f1d87ddbafe647dfaddd11929b6b5168b3f4ef857de"
+requires:
+  "1.14.1": ["onnx/1.14.0", "abseil/20220623.0", "cpuinfo/cci.20220228", "re2/20220601", "ms-gsl/4.0.0", "boost/1.80.0", "safeint/3.24"]
+patches:
+  "1.14.1":
+    - patch_file: "patches/0001-fix-abseil-location.patch"
+    - patch_file: "patches/0002-fix-external-location.patch"
+    - patch_file: "patches/0003-fix-common.patch"
+    - patch_file: "patches/0004-fix-cmakelists.patch"
+    - patch_file: "patches/0005-fix-warnings.patch"

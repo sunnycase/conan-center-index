@@ -12,8 +12,8 @@ import textwrap
 required_conan_version = ">=1.50.2 <1.51.0 || >=1.51.2"
 
 
-class OnnxConan(ConanFile):
-    name = "onnx"
+class OnnxRuntimeConan(ConanFile):
+    name = "onnxruntime"
     description = "Open standard for machine learning interoperability."
     license = "Apache-2.0"
     topics = ("machine-learning", "deep-learning", "neural-network")
@@ -24,12 +24,10 @@ class OnnxConan(ConanFile):
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
-        "disable_static_registration": [True, False],
     }
     default_options = {
         "shared": False,
         "fPIC": True,
-        "disable_static_registration": False,
     }
 
     @property
@@ -44,8 +42,8 @@ class OnnxConan(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
-        if Version(self.version) < "1.9.0":
-            del self.options.disable_static_registration
+        self.options["boost"].header_only = True
+        self.options["onnx"].disable_static_registration = True
 
     def configure(self):
         if self.options.shared:
@@ -53,12 +51,14 @@ class OnnxConan(ConanFile):
 
     def requirements(self):
         self.requires(f"protobuf/{self._protobuf_version}")
+        for req in self.conan_data.get("requires", {}).get(self.version, []):
+            self.requires(req)
+        if self.settings.os != "Windows":
+            self.requires(f"nsync/1.25.0")
 
     def validate(self):
         if self.info.settings.compiler.cppstd:
-            check_min_cppstd(self, 11)
-        if is_msvc(self) and self.info.options.shared:
-            raise ConanInvalidConfiguration("onnx shared is broken with Visual Studio")
+            check_min_cppstd(self, 17)
 
     def build_requirements(self):
         if hasattr(self, "settings_build"):
@@ -73,22 +73,9 @@ class OnnxConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["ONNX_BUILD_BENCHMARKS"] = False
-        tc.variables["ONNX_USE_PROTOBUF_SHARED_LIBS"] = self.options["protobuf"].shared
-        tc.variables["BUILD_ONNX_PYTHON"] = False
-        tc.variables["ONNX_GEN_PB_TYPE_STUBS"] = False
-        tc.variables["ONNX_WERROR"] = False
-        tc.variables["ONNX_COVERAGE"] = False
-        tc.variables["ONNX_BUILD_TESTS"] = False
-        tc.variables["ONNX_USE_LITE_PROTO"] = False
-        tc.variables["ONNXIFI_ENABLE_EXT"] = False
-        tc.variables["ONNX_ML"] = True
-        tc.variables["ONNXIFI_DUMMY_BACKEND"] = False
-        tc.variables["ONNX_VERIFY_PROTO3"] = Version(self.dependencies.host["protobuf"].ref.version).major == "3"
-        if is_msvc(self):
-            tc.variables["ONNX_USE_MSVC_STATIC_RUNTIME"] = is_msvc_static_runtime(self)
-        if Version(self.version) >= "1.9.0":
-            tc.variables["ONNX_DISABLE_STATIC_REGISTRATION"] = self.options.get_safe('disable_static_registration')
+        tc.variables["onnxruntime_BUILD_UNIT_TESTS"] = False
+        tc.variables["onnxruntime_USE_FLASH_ATTENTION"] = False
+        tc.variables["onnxruntime_BUILD_SHARED_LIB"] = self.options.shared
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()
@@ -98,7 +85,7 @@ class OnnxConan(ConanFile):
     def build(self):
         apply_conandata_patches(self)
         cmake = CMake(self)
-        cmake.configure()
+        cmake.configure(build_script_folder="cmake")
         cmake.build()
 
     def package(self):
@@ -110,7 +97,7 @@ class OnnxConan(ConanFile):
         # TODO: to remove in conan v2 once legacy generators removed
         self._create_cmake_module_alias_targets(
             os.path.join(self.package_folder, self._module_file_rel_path),
-            {component["target"]:f"onnx::{component['target']}" for component in self._onnx_components.values()}
+            {component["target"]:f"onnxruntime::{component['target']}" for component in self._onnx_components.values()}
         )
 
     def _create_cmake_module_alias_targets(self, module_file, targets):
@@ -131,25 +118,54 @@ class OnnxConan(ConanFile):
     @property
     def _onnx_components(self):
         components = {
-            "libonnx": {
-                "target": "onnx",
-                "libs": ["onnx"],
-                "defines": ["ONNX_NAMESPACE=onnx", "ONNX_ML=1"],
-                "requires": ["onnx_proto"]
+            "onnxruntime_flatbuffers": {
+                "target": "onnxruntime_flatbuffers",
+                "libs": ["onnxruntime_flatbuffers"]
             },
-            "onnx_proto": {
-                "target": "onnx_proto",
-                "libs": ["onnx_proto"],
-                "defines": ["ONNX_NAMESPACE=onnx", "ONNX_ML=1"],
-                "requires": ["protobuf::libprotobuf"]
+            "onnxruntime_common": {
+                "target": "onnxruntime_common",
+                "libs": ["onnxruntime_common"],
+                "requires": ["protobuf::libprotobuf", "onnx::onnx", "abseil::abseil", "cpuinfo::cpuinfo", "ms-gsl::_ms-gsl", "boost::boost", "safeint::safeint"]
+            },
+            "onnxruntime_mlas": {
+                "target": "onnxruntime_mlas",
+                "libs": ["onnxruntime_mlas"]
+            },
+            "onnxruntime_graph": {
+                "target": "onnxruntime_graph",
+                "libs": ["onnxruntime_graph"],
+                "requires": ["onnxruntime_flatbuffers"]
+            },
+            "onnxruntime_framework": {
+                "target": "onnxruntime_framework",
+                "libs": ["onnxruntime_framework"],
+                "requires": ["onnxruntime_common", "onnxruntime_mlas"]
+            },
+            "onnxruntime_util": {
+                "target": "onnxruntime_util",
+                "libs": ["onnxruntime_util"],
+                "requires": ["onnxruntime_mlas"]
+            },
+            "onnxruntime_optimizer": {
+                "target": "onnxruntime_optimizer",
+                "libs": ["onnxruntime_optimizer"],
+                "requires": ["onnxruntime_graph"]
+            },
+            "onnxruntime_session": {
+                "target": "onnxruntime_session",
+                "libs": ["onnxruntime_session"],
+                "requires": ["onnxruntime_providers", "onnxruntime_graph", "onnxruntime_optimizer"]
+            },
+            "onnxruntime_providers": {
+                "target": "onnxruntime_providers",
+                "libs": ["onnxruntime_providers"],
+                "requires": ["re2::re2", "onnxruntime_framework", "onnxruntime_util"]
             }
         }
-        if Version(self.version) >= "1.11.0":
-            components["libonnx"]["defines"].append("__STDC_FORMAT_MACROS")
         return components
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "onnx")
+        self.cpp_info.set_property("cmake_file_name", "onnxruntime")
 
         def _register_components(components):
             for comp_name, comp_values in components.items():
@@ -167,9 +183,14 @@ class OnnxConan(ConanFile):
                 self.cpp_info.components[comp_name].names["cmake_find_package_multi"] = target
                 self.cpp_info.components[comp_name].build_modules["cmake_find_package"] = [self._module_file_rel_path]
                 self.cpp_info.components[comp_name].build_modules["cmake_find_package_multi"] = [self._module_file_rel_path]
+                if self.settings.os != "Windows":
+                    self.cpp_info.components[comp_name].system_libs = ["dl"]
+                    self.cpp_info.components[comp_name].requires += ["nsync::nsync_cpp"]
+                if str(self.settings.arch).startswith("riscv"):
+                    self.cpp_info.components[comp_name].system_libs += ["atomic"]
 
         _register_components(self._onnx_components)
 
         # TODO: to remove in conan v2 once legacy generators removed
-        self.cpp_info.names["cmake_find_package"] = "onnx"
-        self.cpp_info.names["cmake_find_package_multi"] = "onnx"
+        self.cpp_info.names["cmake_find_package"] = "onnxruntime"
+        self.cpp_info.names["cmake_find_package_multi"] = "onnxruntime"

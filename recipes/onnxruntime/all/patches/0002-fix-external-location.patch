@@ -1,0 +1,33 @@
+diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
+index 0c41945778..7d68d89de1 100644
+--- a/cmake/external/onnxruntime_external_deps.cmake
++++ b/cmake/external/onnxruntime_external_deps.cmake
+@@ -263,6 +263,7 @@ FetchContent_Declare(
+ )
+ 
+ # The next line will generate an error message "fatal: not a git repository", but it is ok. It is from flatbuffers
++find_package(Protobuf REQUIRED CONFIG)
+ onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json mp11 re2 safeint GSL flatbuffers)
+ if(NOT flatbuffers_FOUND)
+   if(NOT TARGET flatbuffers::flatbuffers)
+@@ -369,7 +370,7 @@ include(eigen)
+ include(wil)
+ 
+ if (NOT onnxruntime_MINIMAL_BUILD)
+-    onnxruntime_fetchcontent_makeavailable(onnx)
++    find_package(onnx REQUIRED CONFIG)
+ else()
+   include(onnx_minimal)
+ endif()
+@@ -407,11 +408,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} WIL
+ # The other libs do not have the problem. All the sources are already there. We can compile them in any order.
+ set(onnxruntime_EXTERNAL_DEPENDENCIES onnx_proto flatbuffers::flatbuffers)
+ 
+-target_compile_definitions(onnx PUBLIC $<TARGET_PROPERTY:onnx_proto,INTERFACE_COMPILE_DEFINITIONS> PRIVATE "__ONNX_DISABLE_STATIC_REGISTRATION")
+-if (NOT onnxruntime_USE_FULL_PROTOBUF)
+-  target_compile_definitions(onnx PUBLIC "__ONNX_NO_DOC_STRINGS")
+-endif()
+-
+ if (onnxruntime_RUN_ONNX_TESTS)
+   add_definitions(-DORT_RUN_EXTERNAL_ONNX_TESTS)
+ endif()

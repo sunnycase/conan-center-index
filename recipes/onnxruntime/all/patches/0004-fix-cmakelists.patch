@@ -1,0 +1,24 @@
+diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
+index a5d28fb516..59cc17d108 100644
+--- a/cmake/CMakeLists.txt
++++ b/cmake/CMakeLists.txt
+@@ -1461,7 +1461,7 @@ if (WIN32)
+   list(APPEND onnxruntime_EXTERNAL_LIBRARIES ${SYS_PATH_LIB})
+   list(APPEND onnxruntime_EXTERNAL_LIBRARIES debug Dbghelp)
+ else()
+-  list(APPEND onnxruntime_EXTERNAL_LIBRARIES nsync_cpp)
++  list(APPEND onnxruntime_EXTERNAL_LIBRARIES nsync::nsync_cpp)
+   list(APPEND onnxruntime_EXTERNAL_LIBRARIES ${CMAKE_DL_LIBS} Threads::Threads)
+ endif()
+ 
+@@ -1587,6 +1587,10 @@ if (BUILD_PKGCONFIG_FILES)
+     ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
+ endif()
+ 
++install(DIRECTORY ${PROJECT_SOURCE_DIR}/../include/onnxruntime/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/onnxruntime)
++install(DIRECTORY ${PROJECT_SOURCE_DIR}/../onnxruntime/core/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/onnxruntime/core FILES_MATCHING PATTERN "*.h")
++install(FILES ${CMAKE_CURRENT_BINARY_DIR}/onnxruntime_config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/onnxruntime)
++
+ if (onnxruntime_BUILD_OPSCHEMA_LIB AND onnxruntime_ENABLE_TRAINING)
+   # opschema library requires training ops as well
+   include(onnxruntime_opschema_lib.cmake)
