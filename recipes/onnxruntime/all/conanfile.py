@@ -1,5 +1,6 @@
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
+from conan.tools.apple import is_apple_os
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.env import VirtualBuildEnv
@@ -190,6 +191,9 @@ class OnnxRuntimeConan(ConanFile):
                     self.cpp_info.components[comp_name].system_libs += ["atomic"]
 
         _register_components(self._onnx_components)
+
+        if is_apple_os(self):
+            self.cpp_info.components["onnxruntime_common"].frameworks = ['Foundation']
 
         # TODO: to remove in conan v2 once legacy generators removed
         self.cpp_info.names["cmake_find_package"] = "onnxruntime"
