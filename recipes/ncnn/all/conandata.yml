@@ -1,0 +1,5 @@
+sources:
+  "20230816":
+    url:
+      - "https://github.com/Tencent/ncnn/releases/download/20230816/ncnn-20230816-full-source.zip"
+    sha256: "926e1ec9af7f3d28c0f956b2f69617079728bdd12b75bf7b831a4b225c8a7584"
