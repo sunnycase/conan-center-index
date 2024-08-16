@@ -2,22 +2,12 @@ diff --git a/cmake/onnxruntime_common.cmake b/cmake/onnxruntime_common.cmake
 index 0e02ad9daa..de5f857884 100644
 --- a/cmake/onnxruntime_common.cmake
 +++ b/cmake/onnxruntime_common.cmake
-@@ -194,12 +194,16 @@ if (ARM64 OR ARM OR X86 OR X64 OR X86_64)
-     # Using it mainly in ARM with Android.
-     # Its functionality in detecting x86 cpu features are lacking, so is support for Windows.
-     if (CPUINFO_SUPPORTED)
--      onnxruntime_add_include_to_target(onnxruntime_common cpuinfo)
--      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo clog)
-+      onnxruntime_add_include_to_target(onnxruntime_common cpuinfo::cpuinfo)
-+      list(APPEND onnxruntime_EXTERNAL_LIBRARIES cpuinfo::cpuinfo clog)
-     endif()
-   endif()
+@@ -211,4 +211,8 @@ if (ARM64 OR ARM OR X86 OR X64 OR X86_64)
  endif()
  
 +if (NOT WIN32)
-+  target_link_libraries(onnxruntime_common PUBLIC nsync::nsync_cpp)
++  target_link_libraries(onnxruntime_common PUBLIC nsync::nsync_cpp cpuinfo::cpuinfo)
 +endif()
 +
  if (NOT onnxruntime_BUILD_SHARED_LIB)
-     install(TARGETS onnxruntime_common
-             ARCHIVE   DESTINATION ${CMAKE_INSTALL_LIBDIR}
+   install(DIRECTORY ${PROJECT_SOURCE_DIR}/../include/onnxruntime/core/common  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/onnxruntime/core)

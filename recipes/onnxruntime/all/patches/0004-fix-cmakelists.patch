@@ -2,16 +2,19 @@ diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
 index a5d28fb516..59cc17d108 100644
 --- a/cmake/CMakeLists.txt
 +++ b/cmake/CMakeLists.txt
-@@ -1461,7 +1461,7 @@ if (WIN32)
-   list(APPEND onnxruntime_EXTERNAL_LIBRARIES ${SYS_PATH_LIB})
-   list(APPEND onnxruntime_EXTERNAL_LIBRARIES debug Dbghelp)
- else()
--  list(APPEND onnxruntime_EXTERNAL_LIBRARIES nsync_cpp)
-+  list(APPEND onnxruntime_EXTERNAL_LIBRARIES nsync::nsync_cpp)
-   list(APPEND onnxruntime_EXTERNAL_LIBRARIES ${CMAKE_DL_LIBS} Threads::Threads)
+@@ -527,6 +527,11 @@ if (NOT MSVC AND NOT (CMAKE_SYSTEM_NAME STREQUAL "iOS"))
+   set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQUIRED_FLAGS})
  endif()
  
-@@ -1587,6 +1587,10 @@ if (BUILD_PKGCONFIG_FILES)
++if (${CMAKE_SYSTEM_PROCESSOR} MATCHES
++   "(riscv32)|(riscv64)")
++   set(onnxruntime_LINK_LIBATOMIC true)
++endif()
++
+ set(REPO_ROOT ${PROJECT_SOURCE_DIR}/..)
+ set(ONNXRUNTIME_ROOT ${PROJECT_SOURCE_DIR}/../onnxruntime)
+ set(ORTTRAINING_ROOT ${PROJECT_SOURCE_DIR}/../orttraining)
+@@ -1746,6 +1746,10 @@ if (BUILD_PKGCONFIG_FILES)
      ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
  endif()
  

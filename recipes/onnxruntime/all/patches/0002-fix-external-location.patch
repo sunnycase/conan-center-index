@@ -2,24 +2,32 @@ diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onn
 index 0c41945778..7d68d89de1 100644
 --- a/cmake/external/onnxruntime_external_deps.cmake
 +++ b/cmake/external/onnxruntime_external_deps.cmake
-@@ -263,6 +263,7 @@ FetchContent_Declare(
+@@ -374,12 +374,14 @@ FetchContent_Declare(
  )
  
+ # use fetch content rather than makeavailable because safeint only includes unconditional test targets
+ FetchContent_Populate(safeint)
  # The next line will generate an error message "fatal: not a git repository", but it is ok. It is from flatbuffers
+ onnxruntime_fetchcontent_makeavailable(utf8_range)
+ # protobuf's cmake/utf8_range.cmake has the following line
+ include_directories(${utf8_range_SOURCE_DIR})
+ 
 +find_package(Protobuf REQUIRED CONFIG)
- onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json mp11 re2 safeint GSL flatbuffers)
++find_package(cpuinfo REQUIRED CONFIG)
+-onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json mp11 re2 GSL flatbuffers ${ONNXRUNTIME_CPUINFO_PROJ} ${ONNXRUNTIME_CLOG_PROJ})
++onnxruntime_fetchcontent_makeavailable(Protobuf nlohmann_json mp11 re2 GSL flatbuffers)
  if(NOT flatbuffers_FOUND)
    if(NOT TARGET flatbuffers::flatbuffers)
-@@ -369,7 +370,7 @@ include(eigen)
+@@ -484,7 +484,7 @@ include(eigen)
  include(wil)
  
  if (NOT onnxruntime_MINIMAL_BUILD)
 -    onnxruntime_fetchcontent_makeavailable(onnx)
-+    find_package(onnx REQUIRED CONFIG)
++    find_package(ONNX REQUIRED CONFIG)
  else()
    include(onnx_minimal)
  endif()
-@@ -407,11 +408,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} WIL
+@@ -522,11 +522,6 @@ set(onnxruntime_EXTERNAL_LIBRARIES ${onnxruntime_EXTERNAL_LIBRARIES_XNNPACK} WIL
  # The other libs do not have the problem. All the sources are already there. We can compile them in any order.
  set(onnxruntime_EXTERNAL_DEPENDENCIES onnx_proto flatbuffers::flatbuffers)
  

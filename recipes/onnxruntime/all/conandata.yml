@@ -2,8 +2,16 @@ sources:
   "1.14.1":
     url: "https://github.com/microsoft/onnxruntime/archive/refs/tags/v1.14.1.tar.gz"
     sha256: "f998352b131bb89fa7dd1f1d87ddbafe647dfaddd11929b6b5168b3f4ef857de"
+  "1.17.1":
+    url: "https://github.com/microsoft/onnxruntime/archive/refs/tags/v1.17.1.tar.gz"
+    sha256: "88335a1ccbccccb35d5d3aaadee090a9745cf90d97ca87c4a3ac5c4b694b7b17"
+  "1.18.1":
+    url: "https://github.com/microsoft/onnxruntime/archive/refs/tags/v1.18.1.tar.gz"
+    sha256: "480ff5d2450ff18d02db48908c9c0c6a602993942cb47866b8effe32d0469a2c"
 requires:
-  "1.14.1": ["onnx/1.14.0", "abseil/20220623.0", "cpuinfo/cci.20220228", "re2/20220601", "ms-gsl/4.0.0", "boost/1.80.0", "safeint/3.24"]
+  "1.14.1": ["cpuinfo/cci.20220228", "re2/20220601"]
+  "1.17.1": ["cpuinfo/cci.20220228", "re2/20220601"]
+  "1.18.1": ["cpuinfo/cci.20220228", "re2/20220601"]
 patches:
   "1.14.1":
     - patch_file: "patches/0001-fix-abseil-location.patch"
@@ -12,3 +20,19 @@ patches:
     - patch_file: "patches/0004-fix-cmakelists.patch"
     - patch_file: "patches/0005-fix-warnings.patch"
     - patch_file: "patches/0006-fix-onnxruntime.patch"
+  "1.17.1":
+    - patch_file: "patches/0001-fix-abseil-location.patch"
+    - patch_file: "patches/0002-fix-external-location.patch"
+    - patch_file: "patches/0003-fix-common.patch"
+    - patch_file: "patches/0004-fix-cmakelists.patch"
+    - patch_file: "patches/0005-fix-warnings.patch"
+    - patch_file: "patches/0006-fix-onnxruntime.patch"
+    - patch_file: "patches/0007-fix-mlas.patch"
+  "1.18.1":
+    - patch_file: "patches/0001-fix-abseil-location.patch"
+    - patch_file: "patches/0002-fix-external-location.patch"
+    - patch_file: "patches/0003-fix-common.patch"
+    - patch_file: "patches/0004-fix-cmakelists.patch"
+    - patch_file: "patches/0005-fix-warnings.patch"
+    - patch_file: "patches/0006-fix-onnxruntime.patch"
+    - patch_file: "patches/0007-fix-mlas.patch"

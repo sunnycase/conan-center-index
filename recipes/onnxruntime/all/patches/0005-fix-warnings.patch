@@ -2,14 +2,11 @@ diff --git a/cmake/adjust_global_compile_flags.cmake b/cmake/adjust_global_compi
 index e072363417..226034b944 100644
 --- a/cmake/adjust_global_compile_flags.cmake
 +++ b/cmake/adjust_global_compile_flags.cmake
-@@ -370,7 +370,9 @@ endif()
+@@ -362,5 +362,6 @@ endif()
  if (WIN32)
-     # parallel build
-     # These compiler opitions cannot be forwarded to NVCC, so cannot use add_compiler_options
--    string(APPEND CMAKE_CXX_FLAGS " /MP")
-+    string(APPEND CMAKE_CXX_FLAGS " /MP /wd4100 /wd4244")
++    string(APPEND CMAKE_CXX_FLAGS " /wd4100 /wd4244")
      # required to be set explicitly to enable Eigen-Unsupported SpecialFunctions
      string(APPEND CMAKE_CXX_FLAGS " -DEIGEN_HAS_C99_MATH")
-+else()
-+    string(APPEND CMAKE_CXX_FLAGS " -Wno-array-bounds")
+ elseif(LINUX)
+     add_compile_definitions("_GNU_SOURCE")
  endif()
