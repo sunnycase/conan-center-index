@@ -1,7 +1,8 @@
 import os
-from conans import CMake, ConanFile, tools
-from conans.errors import ConanInvalidConfiguration
-from conans.tools import Version
+from conan import ConanFile
+from conan.tools.env import VirtualBuildEnv, VirtualRunEnv
+from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, rmdir
+from conan.errors import ConanInvalidConfiguration
 
 
 class NetHostConan(ConanFile):
@@ -44,23 +45,21 @@ class NetHostConan(ConanFile):
         return 'https://www.nuget.org/api/v2/package/runtime.{}.Microsoft.NETCore.DotNetAppHost/{}'.format(self.rid, self.version)
 
     def build(self):
-        tools.get(self._nupkg_url())
+        get(self, self._nupkg_url())
 
     def package(self):
         src_dir = os.path.join('runtimes', self.rid, 'native')
-        self.copy('*.h', src=src_dir, dst="include")
+        copy(self, '*.h', src=src_dir, dst=os.path.join(self.package_folder, "include"))
         if self.options.shared:
-            self.copy('nethost.dll', src=src_dir, dst="bin")
-            self.copy('nethost.lib', src=src_dir, dst="lib")
-            self.copy('libnethost.so', src=src_dir, dst="lib")
-            self.copy('libnethost.dylib', src=src_dir, dst="lib")
+            copy(self, 'nethost.dll', src=src_dir, dst=os.path.join(self.package_folder, "bin"))
+            copy(self, 'nethost.lib', src=src_dir, dst=os.path.join(self.package_folder, "lib"))
+            copy(self, 'libnethost.so', src=src_dir, dst=os.path.join(self.package_folder, "lib"))
+            copy(self, 'libnethost.dylib', src=src_dir, dst=os.path.join(self.package_folder, "lib"))
         else:
-            self.copy('libnethost.lib', src=src_dir, dst="lib")
-            self.copy('libnethost.a', src=src_dir, dst="lib")
+            copy(self, 'libnethost.lib', src=src_dir, dst=os.path.join(self.package_folder, "lib"))
+            copy(self, 'libnethost.a', src=src_dir, dst=os.path.join(self.package_folder, "lib"))
 
     def package_info(self):
-        self.cpp_info.names["cmake_find_package"] = "nethost"
-        self.cpp_info.names["cmake_find_package_multi"] = "nethost"
         if self.settings.os == 'Windows' and not self.options.shared:
             self.cpp_info.libs = ["libnethost"]
         else:
