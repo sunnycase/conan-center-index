@@ -1,20 +1,20 @@
 import os
 
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeToolchain
+from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain
 from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, rm, rmdir
-from conan.tools.layout import cmake_layout
 
-required_conan_version = ">=1.52.0"
+required_conan_version = ">=1.54.0"
 
 
 class ShapelibConan(ConanFile):
     name = "shapelib"
     description = "C library for reading and writing ESRI Shapefiles"
-    license = "LGPL-2.0-or-later"
-    topics = ("osgeo", "shapefile", "esri", "geospatial")
-    homepage = "https://github.com/OSGeo/shapelib"
+    license = "LGPL-2.0-or-later", "MIT"
     url = "https://github.com/conan-io/conan-center-index"
+    homepage = "https://github.com/OSGeo/shapelib"
+    topics = ("osgeo", "shapefile", "esri", "geospatial")
+    package_type = "library"
     settings = "os", "arch", "compiler", "build_type"
     options = {
         "shared": [True, False],
@@ -31,18 +31,9 @@ class ShapelibConan(ConanFile):
 
     def configure(self):
         if self.options.shared:
-            try:
-                del self.options.fPIC
-            except Exception:
-                pass
-        try:
-            del self.settings.compiler.libcxx
-        except Exception:
-            pass
-        try:
-            del self.settings.compiler.cppstd
-        except Exception:
-            pass
+            self.options.rm_safe("fPIC")
+        self.settings.compiler.rm_safe("cppstd")
+        self.settings.compiler.rm_safe("libcxx")
 
     def layout(self):
         cmake_layout(self, src_folder="src")
@@ -51,14 +42,12 @@ class ShapelibConan(ConanFile):
         export_conandata_patches(self)
 
     def source(self):
-        get(self, **self.conan_data["sources"][self.version],
-            destination=self.source_folder, strip_root=True)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.cache_variables["CMAKE_POLICY_DEFAULT_CMP0077"] = "NEW"
         tc.variables["BUILD_TESTING"] = False
-        tc.variables["USE_RPATH"] = False
+        tc.cache_variables["USE_RPATH"] = False
         tc.generate()
 
     def build(self):
@@ -69,10 +58,12 @@ class ShapelibConan(ConanFile):
 
     def package(self):
         copy(self, "COPYING", self.source_folder, os.path.join(self.package_folder, "licenses"))
+        copy(self, "license.html", os.path.join(self.source_folder, "web"), os.path.join(self.package_folder, "licenses"))
         cmake = CMake(self)
         cmake.install()
         rm(self, "*.exe", os.path.join(self.package_folder, "bin"))
         rmdir(self, os.path.join(self.package_folder, "share"))
+        rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "shapelib")

@@ -7,6 +7,13 @@ Conan Center Index is the source index of recipes of the [ConanCenter](https://c
 This repository includes a Continuous Integration system that will build automatically the Conan packages for the recipes submitted via
 [Pull Request](https://github.com/conan-io/conan-center-index/pulls).
 
+### Server Status
+
+The current Conan Center Index CI status can be found on https://status.conan.io/
+
+Any maintenance, outage or important event related to the CI will be informed there.
+
+
 ### Add ConanCenter remote
 
 ConanCenter remote is configured by default in any Conan client installation. If, for any reason, you need to add it manually, just execute:
@@ -58,7 +65,7 @@ You can open issues in the [issue tracker](https://github.com/conan-io/conan-cen
     - Specify the name and version (`zlib/1.2.11`) and any relevant details about the fail configuration: Applied profile, building machine...
 
 * :bulb: Request a **new library** to be added:
-    - Use the `[request]` label to search the library in the issue tracker in case the it was already requested.
+    - Use the `[request]` label to search the library in the issue tracker in case it was already requested.
     - If not, use the same `[request]` tag in the title of the issue to help identifying them.
     - Indicate the name and the version of the library you would like to have in the repository. Also links to the project's website,
       source download/repository and in general any relevant information that helps creating a recipe for it.

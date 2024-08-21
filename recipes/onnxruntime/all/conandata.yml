@@ -9,9 +9,9 @@ sources:
     url: "https://github.com/microsoft/onnxruntime/archive/refs/tags/v1.18.1.tar.gz"
     sha256: "480ff5d2450ff18d02db48908c9c0c6a602993942cb47866b8effe32d0469a2c"
 requires:
-  "1.14.1": ["cpuinfo/cci.20220228", "re2/20220601"]
-  "1.17.1": ["cpuinfo/cci.20220228", "re2/20220601"]
-  "1.18.1": ["cpuinfo/cci.20220228", "re2/20220601"]
+  "1.14.1": ["cpuinfo/cci.20231129", "re2/20220601"]
+  "1.17.1": ["cpuinfo/cci.20231129", "re2/20220601"]
+  "1.18.1": ["cpuinfo/cci.20231129", "re2/20220601"]
 patches:
   "1.14.1":
     - patch_file: "patches/0001-fix-abseil-location.patch"

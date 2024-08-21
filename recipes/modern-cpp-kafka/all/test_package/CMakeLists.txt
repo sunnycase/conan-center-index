@@ -1,12 +1,8 @@
-cmake_minimum_required(VERSION 3.1)
-project(test_package)
+cmake_minimum_required(VERSION 3.8)
+project(test_package LANGUAGES CXX)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-
-set(CMAKE_CXX_STANDARD 17)
-
-find_package(ModernCppKafka REQUIRED CONFIG)
+find_package(modern-cpp-kafka REQUIRED CONFIG)
 
 add_executable(${PROJECT_NAME} test_package.cpp)
-target_link_libraries(${PROJECT_NAME} ModernCppKafka::ModernCppKafka)
+target_link_libraries(${PROJECT_NAME} PRIVATE modern-cpp-kafka::modern-cpp-kafka)
+target_compile_features(${PROJECT_NAME}  PRIVATE cxx_std_17)

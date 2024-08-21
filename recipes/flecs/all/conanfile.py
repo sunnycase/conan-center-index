@@ -4,7 +4,7 @@ from conan.tools.files import copy, get, rmdir
 from conan.tools.scm import Version
 import os
 
-required_conan_version = ">=1.50.0"
+required_conan_version = ">=1.53.0"
 
 
 class FlecsConan(ConanFile):
@@ -17,6 +17,7 @@ class FlecsConan(ConanFile):
     homepage = "https://github.com/SanderMertens/flecs"
     url = "https://github.com/conan-io/conan-center-index"
 
+    package_type = "library"
     settings = "os", "arch", "compiler", "build_type"
     options = {
         "shared": [True, False],
@@ -33,18 +34,9 @@ class FlecsConan(ConanFile):
 
     def configure(self):
         if self.options.shared:
-            try:
-                del self.options.fPIC
-            except Exception:
-                pass
-        try:
-            del self.settings.compiler.libcxx
-        except Exception:
-            pass
-        try:
-            del self.settings.compiler.cppstd
-        except Exception:
-            pass
+            self.options.rm_safe("fPIC")
+        self.settings.rm_safe("compiler.cppstd")
+        self.settings.rm_safe("compiler.libcxx")
 
     def layout(self):
         cmake_layout(self, src_folder="src")
@@ -62,6 +54,7 @@ class FlecsConan(ConanFile):
         else:
             tc.variables["FLECS_STATIC"] = not self.options.shared
             tc.variables["FLECS_SHARED"] = self.options.shared
+            tc.variables["FLECS_TESTS"] = False
         tc.variables["FLECS_PIC"] = self.options.get_safe("fPIC", True)
         tc.generate()
 

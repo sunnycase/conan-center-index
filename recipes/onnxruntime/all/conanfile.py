@@ -16,12 +16,13 @@ required_conan_version = ">=1.50.2 <1.51.0 || >=1.51.2"
 
 class OnnxRuntimeConan(ConanFile):
     name = "onnxruntime"
-    description = "Open standard for machine learning interoperability."
-    license = "Apache-2.0"
-    topics = ("machine-learning", "deep-learning", "neural-network")
-    homepage = "https://github.com/onnx/onnx"
+    description = "ONNX Runtime: cross-platform, high performance ML inferencing and training accelerator"
     url = "https://github.com/conan-io/conan-center-index"
+    license = "MIT"
+    homepage = "https://onnxruntime.ai"
+    topics = ("deep-learning", "onnx", "neural-networks", "machine-learning", "ai-framework", "hardware-acceleration")
 
+    package_type = "library"
     settings = "os", "arch", "compiler", "build_type"
     options = {
         "shared": [True, False],

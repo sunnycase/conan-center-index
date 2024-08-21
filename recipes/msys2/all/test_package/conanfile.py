@@ -4,7 +4,7 @@ from io import StringIO
 
 
 class TestPackageConan(ConanFile):
-    settings = "os", "arch", "compiler", "build_type"
+    settings = "os", "arch"
     generators = "VirtualBuildEnv"
     test_type = "explicit"
 
@@ -30,6 +30,5 @@ class TestPackageConan(ConanFile):
         self.run('bash.exe -c ^"! test -f /usr/bin/link^"')
 
         output = StringIO()
-        self.run('bash.exe -c "echo $PKG_CONFIG_PATH"', output=output)
-        print(output.getvalue())
+        self.run('bash.exe -c "echo $PKG_CONFIG_PATH"', output)
         assert self._secret_value in output.getvalue()

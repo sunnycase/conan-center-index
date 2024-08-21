@@ -1,12 +1,12 @@
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.files import apply_conandata_patches, copy, get, replace_in_file, rmdir
+from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, replace_in_file, rmdir
 from conan.tools.microsoft import is_msvc, is_msvc_static_runtime
 from conan.tools.scm import Version
 import os
 
-required_conan_version = ">=1.50.0"
+required_conan_version = ">=1.53.0"
 
 
 class PCRE2Conan(ConanFile):
@@ -16,7 +16,7 @@ class PCRE2Conan(ConanFile):
     description = "Perl Compatible Regular Expressions"
     topics = ("regex", "regexp", "perl")
     license = "BSD-3-Clause"
-
+    package_type = "library"
     settings = "os", "arch", "compiler", "build_type"
     options = {
         "shared": [True, False],
@@ -29,6 +29,7 @@ class PCRE2Conan(ConanFile):
         "with_bzip2": [True, False],
         "support_jit": [True, False],
         "grep_support_callout_fork": [True, False],
+        "link_size": [2, 3, 4],
     }
     default_options = {
         "shared": False,
@@ -41,11 +42,11 @@ class PCRE2Conan(ConanFile):
         "with_bzip2": True,
         "support_jit": False,
         "grep_support_callout_fork": True,
+        "link_size": 2,
     }
 
     def export_sources(self):
-        for p in self.conan_data.get("patches", {}).get(self.version, []):
-            copy(self, p["patch_file"], self.recipe_folder, self.export_sources_folder)
+        export_conandata_patches(self)
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -53,38 +54,31 @@ class PCRE2Conan(ConanFile):
 
     def configure(self):
         if self.options.shared:
-            del self.options.fPIC
-        try:
-            del self.settings.compiler.libcxx
-        except Exception:
-            pass
-        try:
-            del self.settings.compiler.cppstd
-        except Exception:
-            pass
+            self.options.rm_safe("fPIC")
+        self.settings.rm_safe("compiler.cppstd")
+        self.settings.rm_safe("compiler.libcxx")
         if not self.options.build_pcre2grep:
             del self.options.with_zlib
             del self.options.with_bzip2
             del self.options.grep_support_callout_fork
 
+    def layout(self):
+        cmake_layout(self, src_folder="src")
+
     def requirements(self):
         if self.options.get_safe("with_zlib"):
-            self.requires("zlib/1.2.13")
+            self.requires("zlib/[>=1.2.11 <2]")
         if self.options.get_safe("with_bzip2"):
             self.requires("bzip2/1.0.8")
 
     def validate(self):
-        if not self.info.options.build_pcre2_8 and not self.info.options.build_pcre2_16 and not self.info.options.build_pcre2_32:
+        if not self.options.build_pcre2_8 and not self.options.build_pcre2_16 and not self.options.build_pcre2_32:
             raise ConanInvalidConfiguration("At least one of build_pcre2_8, build_pcre2_16 or build_pcre2_32 must be enabled")
-        if self.info.options.build_pcre2grep and not self.info.options.build_pcre2_8:
+        if self.options.build_pcre2grep and not self.options.build_pcre2_8:
             raise ConanInvalidConfiguration("build_pcre2_8 must be enabled for the pcre2grep program")
 
-    def layout(self):
-        cmake_layout(self, src_folder="src")
-
     def source(self):
-        get(self, **self.conan_data["sources"][self.version],
-            destination=self.source_folder, strip_root=True)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
     def generate(self):
         tc = CMakeToolchain(self)
@@ -104,6 +98,7 @@ class PCRE2Conan(ConanFile):
         tc.variables["PCRE2_BUILD_PCRE2_16"] = self.options.build_pcre2_16
         tc.variables["PCRE2_BUILD_PCRE2_32"] = self.options.build_pcre2_32
         tc.variables["PCRE2_SUPPORT_JIT"] = self.options.support_jit
+        tc.variables["PCRE2_LINK_SIZE"] = self.options.link_size
         tc.variables["PCRE2GREP_SUPPORT_CALLOUT_FORK"] = self.options.get_safe("grep_support_callout_fork", False)
         if Version(self.version) < "10.38":
             # relocatable shared libs on Macos
@@ -126,6 +121,18 @@ class PCRE2Conan(ConanFile):
         replace_in_file(self, cmakelists,
                               "RUNTIME DESTINATION bin",
                               "RUNTIME DESTINATION bin BUNDLE DESTINATION bin")
+        # pcre2-config does not correctly include '-static' in static library names
+        if is_msvc(self):
+            replace = None
+            if Version(self.version) > "10.42":
+                replace = "configure_file(pcre2-config.in"
+            elif Version(self.version) >= "10.38":
+                replace = "CONFIGURE_FILE(pcre2-config.in"
+            postfix = "-static" if not self.options.shared else ""
+            if replace:
+                if self.settings.build_type == "Debug":
+                    postfix += "d"
+                replace_in_file(self, cmakelists, replace, f'set(LIB_POSTFIX "{postfix}")\n{replace}')
 
     def build(self):
         self._patch_sources()
@@ -157,6 +164,9 @@ class PCRE2Conan(ConanFile):
             self.cpp_info.components["pcre2-posix"].set_property("pkg_config_name", "libpcre2-posix")
             self.cpp_info.components["pcre2-posix"].libs = [self._lib_name("pcre2-posix")]
             self.cpp_info.components["pcre2-posix"].requires = ["pcre2-8"]
+            if Version(self.version) >= "10.43" and is_msvc(self) and self.options.shared:
+                self.cpp_info.components["pcre2-posix"].defines.append("PCRE2POSIX_SHARED=1")
+
         # pcre2-16
         if self.options.build_pcre2_16:
             self.cpp_info.components["pcre2-16"].set_property("cmake_target_name", "PCRE2::16BIT")
@@ -174,7 +184,7 @@ class PCRE2Conan(ConanFile):
 
         if self.options.build_pcre2grep:
             bin_path = os.path.join(self.package_folder, "bin")
-            self.output.info("Appending PATH environment variable: {}".format(bin_path))
+            self.output.info(f"Appending PATH environment variable: {bin_path}")
             self.env_info.PATH.append(bin_path)
             # FIXME: This is a workaround to avoid ConanException. zlib and bzip2
             # are optional requirements of pcre2grep executable, not of any pcre2 lib.
