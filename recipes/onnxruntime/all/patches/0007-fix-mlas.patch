@@ -2,6 +2,44 @@ diff --git a/cmake/onnxruntime_mlas.cmake b/cmake/onnxruntime_mlas.cmake
 index 17de2aa4aa..32fec8d53e 100644
 --- a/cmake/onnxruntime_mlas.cmake
 +++ b/cmake/onnxruntime_mlas.cmake
+@@ -158,10 +158,7 @@ function(setup_mlas_source_for_windows)
+     )
+     set_source_files_properties(${mlas_platform_srcs_avx2} PROPERTIES COMPILE_FLAGS "/arch:AVX2")
+ 
+-    target_sources(onnxruntime_mlas PRIVATE
+-      ${MLAS_SRC_DIR}/dgemm.cpp
+-      ${mlas_platform_srcs_avx}
+-      ${mlas_platform_srcs_avx2}
++    set(mlas_platform_srcs_avx512
+       ${MLAS_SRC_DIR}/qgemm_kernel_amx.cpp
+       ${MLAS_SRC_DIR}/qgemm_kernel_avx2.cpp
+       ${MLAS_SRC_DIR}/qgemm_kernel_sse.cpp
+@@ -207,10 +204,25 @@ function(setup_mlas_source_for_windows)
+       ${MLAS_SRC_DIR}/amd64/TanhKernelFma3.asm
+       ${MLAS_SRC_DIR}/amd64/ErfKernelFma3.asm
+     )
++    set_source_files_properties(${mlas_platform_srcs_avx512} PROPERTIES COMPILE_FLAGS "/arch:AVX512")
++    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
++      set_source_files_properties(${mlas_platform_srcs_avx512} PROPERTIES COMPILE_FLAGS "-mfma -mavx512vnni -mavx512bw -mavx512dq -mavx512vl -mavx512f")
++    endif()
++
++    target_sources(onnxruntime_mlas PRIVATE
++      ${MLAS_SRC_DIR}/dgemm.cpp
++      ${mlas_platform_srcs_avx}
++      ${mlas_platform_srcs_avx2}
++      ${mlas_platform_srcs_avx512}
++    )
+     if (NOT onnxruntime_ORT_MINIMAL_BUILD)
+       target_sources(onnxruntime_mlas PRIVATE
+         ${MLAS_SRC_DIR}/q4gemm_avx512.cpp
+       )
++      set_source_files_properties(${MLAS_SRC_DIR}/q4gemm_avx512.cpp PROPERTIES COMPILE_FLAGS "/arch:AVX512")
++      if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
++        set_source_files_properties(${MLAS_SRC_DIR}/q4gemm_avx512.cpp PROPERTIES COMPILE_FLAGS "-mfma -mavx512vnni -mavx512bw -mavx512dq -mavx512vl -mavx512f")
++      endif()
+     endif()
+   else()
+     target_sources(onnxruntime_mlas PRIVATE
 @@ -689,7 +689,7 @@ if (NOT onnxruntime_ORT_MINIMAL_BUILD)
  
    target_link_libraries(onnxruntime_mlas_q4dq PRIVATE ${ONNXRUNTIME_MLAS_LIBS} onnxruntime_common)

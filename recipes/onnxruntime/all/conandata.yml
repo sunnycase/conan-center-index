@@ -11,7 +11,7 @@ sources:
 requires:
   "1.14.1": ["cpuinfo/cci.20231129", "re2/20220601"]
   "1.17.1": ["cpuinfo/cci.20231129", "re2/20220601"]
-  "1.18.1": ["cpuinfo/cci.20231129", "re2/20220601"]
+  "1.18.1": ["cpuinfo/cci.20240807", "re2/20220601"]
 patches:
   "1.14.1":
     - patch_file: "patches/0001-fix-abseil-location.patch"
@@ -36,3 +36,4 @@ patches:
     - patch_file: "patches/0005-fix-warnings.patch"
     - patch_file: "patches/0006-fix-onnxruntime.patch"
     - patch_file: "patches/0007-fix-mlas.patch"
+    - patch_file: "patches/0008-fix-amx_common.patch"

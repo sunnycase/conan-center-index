@@ -1,0 +1,13 @@
+diff --git a/onnxruntime/core/mlas/lib/amx_common.h b/onnxruntime/core/mlas/lib/amx_common.h
+index caf94af..5951c49 100644
+--- a/onnxruntime/core/mlas/lib/amx_common.h
++++ b/onnxruntime/core/mlas/lib/amx_common.h
+@@ -18,7 +18,7 @@ Abstract:
+ 
+ #include "mlasi.h"
+ 
+-#ifdef _WIN32
++#if defined(_WIN32) && !defined(__clang__)
+ #define tile_dpbssd(dst, src1, src2) _tile_dpbssd(dst, src1, src2)
+ 
+ #define tile_dpbsud(dst, src1, src2) _tile_dpbsud(dst, src1, src2)
