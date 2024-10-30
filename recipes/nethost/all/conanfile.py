@@ -37,7 +37,7 @@ class NetHostConan(ConanFile):
             arch = 'x86'
         elif self.settings.arch == 'x86_64':
             arch = 'x64'
-        elif self.settings.arch == 'armv8' or self.settings.arch == 'arm64':
+        elif self.settings.arch == 'armv8':
             arch = 'arm64'
         if (not os) or (not arch):
             raise ConanInvalidConfiguration("Unsupported nethost os or arch")
